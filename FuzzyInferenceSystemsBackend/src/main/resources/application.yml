@@ -1,0 +1,19 @@
+server:
+  servlet:
+    context-path: /api
+
+spring:
+  servlet:
+    multipart:
+      resolve-lazily: true
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_DB}:${POSTGRES_PORT}/postgres
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+springdoc:
+  api-docs:
+    path: /v1/docs/src
+  swagger-ui:
+    path: /v1/docs/swagger
+  headers-to-match:
