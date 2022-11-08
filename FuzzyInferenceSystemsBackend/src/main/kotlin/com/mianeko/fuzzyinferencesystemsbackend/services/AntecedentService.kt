@@ -1,6 +1,8 @@
 package com.mianeko.fuzzyinferencesystemsbackend.services
 
-import com.mianeko.fuzzyinferencesystemsbackend.DTO.AntecedentDTO
+import com.mianeko.fuzzyinferencesystemsbackend.DTODb.AntecedentTemplateDTODb
+import com.mianeko.fuzzyinferencesystemsbackend.DTONet.AntecedentDTONet
+import com.mianeko.fuzzyinferencesystemsbackend.DTONet.AntecedentTemplateDTONet
 import com.mianeko.fuzzyinferencesystemsbackend.database.repositories.AntecedentRepository
 import com.mianeko.fuzzyinferencesystemsbackend.database.repositories.RuleRepository
 import com.mianeko.fuzzyinferencesystemsbackend.database.repositories.SystemRepository
@@ -9,11 +11,9 @@ import com.mianeko.fuzzyinferencesystemsbackend.exceptions.RuleNotExistException
 import com.mianeko.fuzzyinferencesystemsbackend.exceptions.SystemNotExistException
 import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.AntecedentLookup
 import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.PageSettings
-import com.mianeko.fuzzyinferencesystemsbackend.services.models.AntecedentTemplateDTO
-import org.springdoc.core.converters.models.Pageable
 import org.springframework.stereotype.Service
 
-interface AntecedentService : CrudService<AntecedentDTO, AntecedentTemplateDTO, AntecedentLookup>
+interface AntecedentService : CrudService<AntecedentDTONet, AntecedentTemplateDTONet, AntecedentLookup>
 
 @Service
 class AntecedentServiceImpl(
@@ -29,38 +29,50 @@ class AntecedentServiceImpl(
             throw RuleNotExistException(ruleId)
     }
 
-    override fun create(model: AntecedentTemplateDTO): AntecedentDTO {
+    override fun create(model: AntecedentTemplateDTONet): AntecedentDTONet {
         checkPath(model.systemId, null)
 
-        return antecedentRepository.save(
-            model.toModel(generateId())
-        ).toDTO()
+        return AntecedentDTONet.fromModel(
+            antecedentRepository.save(
+                AntecedentTemplateDTODb.fromModel(
+                    model.toModel(
+                        generateId()
+                    )
+                )
+            ).toModel()
+        )
     }
 
-    override fun get(lookupEntity: AntecedentLookup): AntecedentDTO {
+    override fun get(lookupEntity: AntecedentLookup): AntecedentDTONet {
         checkPath(lookupEntity.systemId, lookupEntity.ruleId)
 
         return antecedentRepository
                 .findOne(lookupEntity)
-                ?.toDTO()
+                ?.let{
+                    AntecedentDTONet.fromModel(it.toModel())
+                }
             ?: throw AntecedentNotExistException(lookupEntity.antecedentId)
     }
 
-    override fun getAll(lookupEntity: AntecedentLookup, pageSettings: PageSettings): List<AntecedentDTO> {
+    override fun getAll(lookupEntity: AntecedentLookup, pageSettings: PageSettings): List<AntecedentDTONet> {
         checkPath(lookupEntity.systemId, lookupEntity.ruleId)
 
-        return antecedentRepository.findAll(lookupEntity, pageSettings).map{ it.toDTO() }
+        return antecedentRepository.findAll(lookupEntity, pageSettings).map{ AntecedentDTONet.fromModel(it.toModel()) }
     }
 
-    override fun update(model: AntecedentTemplateDTO): AntecedentDTO {
+    override fun update(model: AntecedentTemplateDTONet): AntecedentDTONet {
         checkPath(model.systemId, null)
 
         if (model.id == null || !antecedentRepository.idExists(model.id))
             throw AntecedentNotExistException(model.id)
 
-        return antecedentRepository.save(
-            model.toModel(model.id)
-        ).toDTO()
+        return AntecedentDTONet.fromModel(
+            antecedentRepository.save(
+                AntecedentTemplateDTODb.fromModel(
+                    model.toModel(model.id)
+                )
+            ).toModel()
+        )
     }
 
     override fun delete(lookupEntity: AntecedentLookup) {

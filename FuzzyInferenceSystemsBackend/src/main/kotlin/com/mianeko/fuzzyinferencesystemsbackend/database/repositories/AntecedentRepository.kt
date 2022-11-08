@@ -1,30 +1,25 @@
 package com.mianeko.fuzzyinferencesystemsbackend.database.repositories
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.mianeko.fuzzyinferencesystemsbackend.DTODb.AntecedentDTODb
+import com.mianeko.fuzzyinferencesystemsbackend.DTODb.AntecedentTemplateDTODb
 import com.mianeko.fuzzyinferencesystemsbackend.database.entities.DBAntecedent
-import com.mianeko.fuzzyinferencesystemsbackend.database.entities.DBInsertableAntecedent
-import com.mianeko.fuzzyinferencesystemsbackend.exceptions.*
+import com.mianeko.fuzzyinferencesystemsbackend.exceptions.AntecedentSaveException
+import com.mianeko.fuzzyinferencesystemsbackend.exceptions.SystemNotExistException
 import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.AntecedentLookup
 import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.PageSettings
-import com.mianeko.fuzzyinferencesystemsbackend.services.models.Antecedent
-import com.mianeko.fuzzyinferencesystemsbackend.services.models.AntecedentTemplate
 import io.ebean.Database
-import org.springdoc.core.converters.models.Pageable
-import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties
 import org.springframework.stereotype.Repository
-import java.lang.Exception
 
-interface AntecedentRepository : DatabaseRepository<Antecedent, AntecedentTemplate, AntecedentLookup>
+interface AntecedentRepository : DatabaseRepository<AntecedentDTODb, AntecedentTemplateDTODb, AntecedentLookup>
 
 @Repository
 class AntecedentRepositoryImpl(
-    val db: Database,
-    val mapper: ObjectMapper
+    val db: Database
 ) : AntecedentRepository {
     override fun idExists(id: Int) =
         db.find(DBAntecedent::class.java, id) != null
 
-    override fun save(model: AntecedentTemplate): Antecedent {
+    override fun save(model: AntecedentTemplateDTODb): AntecedentDTODb {
         val lookup = AntecedentLookup(
             systemId = model.systemId,
             ruleId = null,
@@ -37,9 +32,9 @@ class AntecedentRepositoryImpl(
 
         try {
             if (dbModel == null)
-                db.save(DBInsertableAntecedent.fromModel(model))
+                db.save(model.toModelDb())
             else
-                db.update(DBInsertableAntecedent.fromModel(model))
+                db.update(model.toModelDb())
         } catch (e: Exception) {
             throw AntecedentSaveException(model.id)
         }
@@ -58,27 +53,27 @@ class AntecedentRepositoryImpl(
         }
     }
 
-    override fun findOne(lookup: AntecedentLookup): Antecedent? {
+    override fun findOne(lookup: AntecedentLookup): AntecedentDTODb? {
         val sql = "select a.* " +
                 "from antecedent a join membership_function mf on a.m_id = mf.m_id " +
                 "join variable v on v.v_id = mf.v_id " +
                 "where v.s_id = ? and a.a_id = ?;"
-        return lookup.antecedentId?.let {
+        return lookup.antecedentId?.let { id ->
             db.findNative(DBAntecedent::class.java, sql)
                 .setParameter(1, lookup.systemId)
-                .setParameter(2, it)
+                .setParameter(2, id)
                 .findOne()
-                ?.toModel()
+                ?.let { AntecedentDTODb.fromModelDb(it) }
         }
     }
 
-    override fun findAll(lookup: AntecedentLookup, pageSettings: PageSettings): List<Antecedent> {
+    override fun findAll(lookup: AntecedentLookup, pageSettings: PageSettings): List<AntecedentDTODb> {
         val query =
             if (lookup.ruleId == null) {
                 val sql = "select a.* " +
                         "from antecedent a join membership_function mf on a.m_id = mf.m_id " +
                         "join variable v on v.v_id = mf.v_id " +
-                        "where v.s_id = ?;"
+                        "where v.s_id = ? "
                 db.findNative(DBAntecedent::class.java, sql)
                     .setParameter(1, lookup.systemId)
             } else {
@@ -86,7 +81,7 @@ class AntecedentRepositoryImpl(
                         "from antecedent a " +
                         "join rule_antecedents ra on ra.a_id = a.a_id " +
                         "join rule r on r.r_id = ra.r_id " +
-                        "where r.s_id = ? and r.r_id = ?;"
+                        "where r.s_id = ? and r.r_id = ? "
                 db.findNative(DBAntecedent::class.java, sql)
                     .setParameter(1, lookup.systemId)
                     .setParameter(2, lookup.ruleId)
@@ -95,6 +90,6 @@ class AntecedentRepositoryImpl(
             .setMaxRows(pageSettings.size)
             .setFirstRow(pageSettings.page * pageSettings.size)
             .findList()
-            .map { it.toModel() }
+            .map { AntecedentDTODb.fromModelDb(it) }
     }
 }

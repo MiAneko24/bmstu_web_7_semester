@@ -1,17 +1,15 @@
 package com.mianeko.fuzzyinferencesystemsbackend.database.repositories
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.mianeko.fuzzyinferencesystemsbackend.DTODb.SystemDTODb
+import com.mianeko.fuzzyinferencesystemsbackend.DTODb.SystemTemplateDTODb
 import com.mianeko.fuzzyinferencesystemsbackend.database.entities.DBSystem
-import com.mianeko.fuzzyinferencesystemsbackend.database.entities.DBInsertableSystem
 import com.mianeko.fuzzyinferencesystemsbackend.exceptions.SystemSaveException
 import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.PageSettings
 import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.SystemLookup
-import com.mianeko.fuzzyinferencesystemsbackend.services.models.InferenceSystem
-import com.mianeko.fuzzyinferencesystemsbackend.services.models.SystemTemplate
 import io.ebean.Database
 import org.springframework.stereotype.Repository
 
-interface SystemRepository : DatabaseRepository<InferenceSystem, SystemTemplate, SystemLookup>
+interface SystemRepository : DatabaseRepository<SystemDTODb, SystemTemplateDTODb, SystemLookup>
 
 @Repository
 class SystemRepositoryImpl(
@@ -20,16 +18,16 @@ class SystemRepositoryImpl(
     override fun idExists(id: Int) =
         db.find(DBSystem::class.java, id) != null
 
-    override fun save(model: SystemTemplate): InferenceSystem {
+    override fun save(model: SystemTemplateDTODb): SystemDTODb {
         val lookup = SystemLookup(model.id)
 
         val dbModel = findOne(lookup)
 
         try {
             if (dbModel == null)
-                db.save(DBInsertableSystem.fromModel(model))
+                db.save(model.toModelDb())
             else
-                db.update(DBInsertableSystem.fromModel(model))
+                db.update(model.toModelDb())
         } catch (e: Exception) {
             throw SystemSaveException(model.id)
         }
@@ -44,16 +42,19 @@ class SystemRepositoryImpl(
         }
     }
 
-    override fun findOne(lookup: SystemLookup): InferenceSystem? =
-        lookup.systemId?.let {
-            db.find(DBSystem::class.java, it)
-                ?.toModel()
+    override fun findOne(lookup: SystemLookup): SystemDTODb? =
+        lookup.systemId?.let { id ->
+            db.find(DBSystem::class.java, id)
+                ?.let { SystemDTODb.fromModelDb(it) }
         }
 
-    override fun findAll(lookup: SystemLookup, pageSettings: PageSettings): List<InferenceSystem> =
+    override fun findAll(
+        lookup: SystemLookup,
+        pageSettings: PageSettings
+    ): List<SystemDTODb> =
         db.find(DBSystem::class.java)
             .setMaxRows(pageSettings.size)
             .setFirstRow(pageSettings.page * pageSettings.size)
             .findList()
-            .map{ it.toModel() }
+            .map{ SystemDTODb.fromModelDb(it) }
 }

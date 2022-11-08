@@ -11,6 +11,9 @@ class VariableNotFoundException : VariableAPIException()
 @ResponseStatus(code = HttpStatus.BAD_REQUEST, reason = "Could not save variable: incorrect request body")
 class IncorrectVariableBody : VariableAPIException()
 
+@ResponseStatus(code = HttpStatus.BAD_REQUEST, reason = "Could not set value to variable")
+class InvalidVariableValue : VariableAPIException()
+
 @ResponseStatus(code = HttpStatus.BAD_REQUEST, reason = "MaxValue must be more than minValue of variable, " +
         "value must be in range [minValue; maxValue]")
 class IncorrectVariableRange : VariableAPIException()

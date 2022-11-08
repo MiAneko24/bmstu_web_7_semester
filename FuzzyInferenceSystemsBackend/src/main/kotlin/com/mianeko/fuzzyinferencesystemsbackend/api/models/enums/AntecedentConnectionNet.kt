@@ -5,26 +5,26 @@ import com.mianeko.fuzzyinferencesystemsbackend.exceptions.AntecedentConnectionE
 import com.mianeko.fuzzyinferencesystemsbackend.services.models.enums.AntecedentConnection
 
 enum class AntecedentConnectionNet(@JsonValue val text: String) {
-    Or("or"),
-    And("and");
+    or("or"),
+    and("and");
 
     fun toAntecedentConnection() =
         when (this) {
-            Or -> AntecedentConnection.Or
-            And -> AntecedentConnection.And
+            or -> AntecedentConnection.Or
+            and -> AntecedentConnection.And
         }
 
     companion object {
         fun fromAntecedentConnection(antecedentConnection: AntecedentConnection) =
             when (antecedentConnection) {
-                AntecedentConnection.Or -> Or
-                AntecedentConnection.And -> And
+                AntecedentConnection.Or -> or
+                AntecedentConnection.And -> and
             }
 
         fun fromString(s: String) =
             when(s) {
-                "or" -> Or
-                "and" -> And
+                "or" -> or
+                "and" -> and
                 else -> throw AntecedentConnectionException(s)
             }
 

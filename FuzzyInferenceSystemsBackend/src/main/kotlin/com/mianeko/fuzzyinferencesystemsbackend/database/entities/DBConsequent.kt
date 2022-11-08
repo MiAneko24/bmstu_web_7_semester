@@ -1,7 +1,5 @@
 package com.mianeko.fuzzyinferencesystemsbackend.database.entities
 
-import com.mianeko.fuzzyinferencesystemsbackend.services.models.Consequent
-import com.mianeko.fuzzyinferencesystemsbackend.services.models.ConsequentTemplate
 import javax.persistence.*
 
 @Entity
@@ -22,15 +20,7 @@ data class DBConsequent(
     @ManyToOne
     @JoinColumn(name = "v_id", referencedColumnName = "v_id")
     val variable: DBVariable?
-) {
-    fun toModel(): Consequent = Consequent(
-        id = this.id,
-        membershipFunction = this.membershipFunction.toModel(),
-        ruleId = this.rule.id,
-        variable = this.variable?.toModel(),
-        systemId = this.rule.system.id
-    )
-}
+)
 
 @Entity
 @Table(name="consequent", schema="public")
@@ -48,13 +38,4 @@ data class DBInsertableConsequent(
     @Column(name = "v_id")
     val variableId: Int?
 
-) {
-    companion object {
-        fun fromModel(consequent: ConsequentTemplate) = DBInsertableConsequent(
-            id = consequent.id,
-            membershipFunctionId = consequent.membershipFunctionId,
-            ruleId = consequent.ruleId,
-            variableId = consequent.variableId
-        )
-    }
-}
+)

@@ -1,18 +1,16 @@
 package com.mianeko.fuzzyinferencesystemsbackend.database.repositories
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.mianeko.fuzzyinferencesystemsbackend.DTODb.RuleDTODb
+import com.mianeko.fuzzyinferencesystemsbackend.DTODb.RuleTemplateDTODb
 import com.mianeko.fuzzyinferencesystemsbackend.database.entities.DBRule
-import com.mianeko.fuzzyinferencesystemsbackend.database.entities.DBInsertableRule
 import com.mianeko.fuzzyinferencesystemsbackend.exceptions.RuleSaveException
-import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.RuleLookup
 import com.mianeko.fuzzyinferencesystemsbackend.exceptions.SystemNotExistException
 import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.PageSettings
-import com.mianeko.fuzzyinferencesystemsbackend.services.models.Rule
-import com.mianeko.fuzzyinferencesystemsbackend.services.models.RuleTemplate
+import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.RuleLookup
 import io.ebean.Database
 import org.springframework.stereotype.Repository
 
-interface RuleRepository : DatabaseRepository<Rule, RuleTemplate, RuleLookup>
+interface RuleRepository : DatabaseRepository<RuleDTODb, RuleTemplateDTODb, RuleLookup>
 
 @Repository
 class RuleRepositoryImpl(
@@ -21,7 +19,7 @@ class RuleRepositoryImpl(
     override fun idExists(id: Int) =
         db.find(DBRule::class.java, id) != null
 
-    override fun save(model: RuleTemplate): Rule {
+    override fun save(model: RuleTemplateDTODb): RuleDTODb {
         val lookup = RuleLookup(
             systemId = model.systemId,
             ruleId = model.id
@@ -33,9 +31,9 @@ class RuleRepositoryImpl(
 
         try {
             if (dbModel == null)
-                db.save(DBInsertableRule.fromModel(model))
+                db.save(model.toModelDb())
             else
-                db.update(DBInsertableRule.fromModel(model))
+                db.update(model.toModelDb())
         } catch (e: Exception) {
             throw RuleSaveException(model.id)
         }
@@ -50,22 +48,22 @@ class RuleRepositoryImpl(
         }
     }
 
-    override fun findOne(lookup: RuleLookup): Rule? =
-        lookup.ruleId?.let {
+    override fun findOne(lookup: RuleLookup): RuleDTODb? =
+        lookup.ruleId?.let { id ->
             db.find(DBRule::class.java)
                 .where()
                 .eq("s_id", lookup.systemId)
-                .eq("r_id", it)
+                .eq("r_id", id)
                 .findOne()
-                ?.toModel()
+                ?.let { RuleDTODb.fromModelDb(it) }
         }
 
-    override fun findAll(lookup: RuleLookup, pageSettings: PageSettings): List<Rule> =
+    override fun findAll(lookup: RuleLookup, pageSettings: PageSettings): List<RuleDTODb> =
         db.find(DBRule::class.java)
             .where()
             .eq("s_id", lookup.systemId)
             .setMaxRows(pageSettings.size)
             .setFirstRow(pageSettings.page * pageSettings.size)
             .findList()
-            .map{ it.toModel() }
+            .map{ RuleDTODb.fromModelDb(it) }
 }

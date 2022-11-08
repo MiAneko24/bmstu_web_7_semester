@@ -1,5 +1,7 @@
 package com.mianeko.fuzzyinferencesystemsbackend.api
 
+import com.mianeko.fuzzyinferencesystemsbackend.DTONet.ConsequentTemplateDTONet
+import com.mianeko.fuzzyinferencesystemsbackend.DTONet.RuleTemplateDTONet
 import com.mianeko.fuzzyinferencesystemsbackend.api.exceptions.*
 import com.mianeko.fuzzyinferencesystemsbackend.api.models.*
 import com.mianeko.fuzzyinferencesystemsbackend.exceptions.*
@@ -16,6 +18,9 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
@@ -24,8 +29,10 @@ import org.springframework.web.bind.annotation.*
 class RulesApiHandler(
     private val ruleService: RuleService,
     private val consequentService: ConsequentService,
-    private val antecedentService: AntecedentService
+    private val antecedentService: AntecedentService,
+    @Value("\${server.servlet.application-display-name}") val serverName: String
 ) {
+    private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
 //    RULES API
     @Operation(summary = "Get rules by system ID")
@@ -46,6 +53,7 @@ class RulesApiHandler(
         @RequestParam(value = "page", defaultValue = "0", required = false) page: Int,
         @RequestParam(value = "size", defaultValue = Int.MAX_VALUE.toString(), required = false) size: Int
     ): List<PartialRuleNet> {
+        log.info("$serverName| Get rules request")
         try {
             val lookup = RuleLookup(
                 systemId = systemId,
@@ -55,7 +63,7 @@ class RulesApiHandler(
             return ruleService
                 .getAll(lookup, PageSettings(page, size))
                 .filter { it.systemId == systemId }
-                .map { PartialRuleNet.fromDTO(it) }
+                .map { it.toPartialModelNet() }
         } catch (e: SystemNotExistException) {
             throw SystemNotFoundException()
         }
@@ -81,8 +89,11 @@ class RulesApiHandler(
         @PathVariable systemId: Int,
         @RequestBody ruleTemplateNet: RuleTemplateNet
     ): PartialRuleNet {
+        log.info("$serverName| Post rule request")
         try {
-            return PartialRuleNet.fromDTO(ruleService.create(ruleTemplateNet.toDTO(systemId, null)))
+            return ruleService
+                .create(RuleTemplateDTONet.fromModelNet(ruleTemplateNet, systemId, null))
+                .toPartialModelNet()
         } catch (e: SystemNotExistException) {
             throw SystemNotFoundException()
         } catch (e: RuleSaveException) {
@@ -107,12 +118,13 @@ class RulesApiHandler(
     @GetMapping("/{ruleId}")
     fun getRule(@PathVariable systemId: Int, @PathVariable ruleId: Int): RuleNet {
         try {
+            log.info("$serverName| Get rule with id $ruleId request")
             val lookup = RuleLookup(
                 systemId = systemId,
                 ruleId = ruleId
             )
 
-            return RuleNet.fromDTO(ruleService.get(lookup))
+            return ruleService.get(lookup).toModelNet()
         } catch (e: SystemNotExistException) {
             throw SystemNotFoundException()
         } catch (e: RuleSaveException) {
@@ -144,8 +156,11 @@ class RulesApiHandler(
         @PathVariable ruleId: Int,
         @RequestBody ruleNet: RuleTemplateNet
     ): RuleNet {
+        log.info("$serverName| Put rule request")
         try {
-            return RuleNet.fromDTO(ruleService.update(ruleNet.toDTO(systemId, ruleId)))
+            return ruleService
+                .update(RuleTemplateDTONet.fromModelNet(ruleNet, systemId, ruleId))
+                .toModelNet()
         } catch (e: SystemNotExistException) {
             throw SystemNotFoundException()
         } catch (e: RuleSaveException) {
@@ -177,6 +192,7 @@ class RulesApiHandler(
         @PathVariable ruleId: Int,
         @RequestBody rulePatchNet: RulePatchNet
     ): RuleNet {
+        log.info("$serverName| Patch rule request")
         try {
             val lookup = RuleLookup(
                 systemId = systemId,
@@ -184,7 +200,7 @@ class RulesApiHandler(
             )
 
             val rule = ruleService.get(lookup)
-            return RuleNet.fromDTO(ruleService.update(rulePatchNet.applyTo(rule)))
+            return ruleService.update(rulePatchNet.applyTo(rule)).toModelNet()
         } catch (e: SystemNotExistException) {
             throw SystemNotFoundException()
         } catch (e: RuleSaveException) {
@@ -208,7 +224,11 @@ class RulesApiHandler(
             content = [(Content(schema = Schema(hidden = true)))])]
     )
     @DeleteMapping("/{ruleId}")
-    fun deleteRule(@PathVariable systemId: Int, @PathVariable ruleId: Int): Unit {
+    fun deleteRule(
+        @PathVariable systemId: Int,
+        @PathVariable ruleId: Int
+    ): Unit {
+        log.info("$serverName| Delete rule request")
         val lookup = RuleLookup(
             systemId = systemId,
             ruleId = ruleId
@@ -238,6 +258,7 @@ class RulesApiHandler(
         @RequestParam(value = "page", defaultValue = "0", required = false) page: Int,
         @RequestParam(value = "size", defaultValue = Int.MAX_VALUE.toString(), required = false) size: Int,
     ): List<AntecedentNet> {
+        log.info("$serverName| Get rule antecedents request")
         try {
             val antecedentLookup = AntecedentLookup(
                 systemId = systemId,
@@ -247,7 +268,7 @@ class RulesApiHandler(
 
             return antecedentService
                 .getAll(antecedentLookup, PageSettings(page, size))
-                .map { AntecedentNet.fromDTO(it) }
+                .map { it.toModelNet() }
         } catch (e: SystemNotExistException) {
             throw SystemNotFoundException()
         } catch (e: RuleNotExistException) {
@@ -275,6 +296,7 @@ class RulesApiHandler(
         @RequestParam(value = "page", defaultValue = "0", required = false) page: Int,
         @RequestParam(value = "size", defaultValue = Int.MAX_VALUE.toString(), required = false) size: Int
     ): List<ConsequentNet> {
+        log.info("$serverName| Get consequents request")
         try {
             val lookup = ConsequentLookup(
                 systemId = systemId,
@@ -284,7 +306,7 @@ class RulesApiHandler(
 
             return consequentService
                 .getAll(lookup, PageSettings(page, size))
-                .map { ConsequentNet.fromDTO(it) }
+                .map { it.toModelNet() }
         } catch (e: SystemNotExistException) {
             throw SystemNotFoundException()
         } catch (e: RuleNotExistException) {
@@ -315,10 +337,11 @@ class RulesApiHandler(
         @PathVariable ruleId: Int,
         @RequestBody consequentTemplateNet: ConsequentTemplateNet
     ): ConsequentNet {
+        log.info("$serverName| Post consequent request")
         try {
-            return ConsequentNet.fromDTO(
-                consequentService.create(consequentTemplateNet.toDTO(systemId, ruleId, null))
-            )
+            return consequentService
+                .create(ConsequentTemplateDTONet.fromModelNet(consequentTemplateNet, systemId, ruleId, null))
+                .toModelNet()
         } catch (e: SystemNotExistException) {
             throw SystemNotFoundException()
         } catch (e: ConsequentSaveException) {
@@ -348,6 +371,7 @@ class RulesApiHandler(
         @PathVariable ruleId: Int,
         @PathVariable consequentId: Int
     ): ConsequentNet {
+        log.info("$serverName| Get consequent with id $consequentId request")
         try {
             val lookup = ConsequentLookup(
                 systemId = systemId,
@@ -355,9 +379,7 @@ class RulesApiHandler(
                 consequentId = consequentId
             )
 
-            return ConsequentNet.fromDTO(
-                consequentService.get(lookup)
-            )
+            return consequentService.get(lookup).toModelNet()
         } catch (e: SystemNotExistException) {
             throw SystemNotFoundException()
         } catch (e: RuleNotExistException) {
@@ -388,10 +410,10 @@ class RulesApiHandler(
         @PathVariable consequentId: Int,
         @RequestBody consequentNet: ConsequentTemplateNet
     ): ConsequentNet {
+        log.info("$serverName| Put consequent request")
         try {
-            return ConsequentNet.fromDTO(
-                consequentService.update(
-                    consequentNet.toDTO(systemId, ruleId, consequentId)))
+            return consequentService.update(
+                    ConsequentTemplateDTONet.fromModelNet(consequentNet, systemId, ruleId, consequentId)).toModelNet()
         } catch (e: SystemNotExistException) {
             throw SystemNotFoundException()
         } catch (e: ConsequentSaveException) {
@@ -418,6 +440,7 @@ class RulesApiHandler(
         @PathVariable ruleId: Int,
         @PathVariable consequentId: Int
     ) {
+        log.info("$serverName| Delete consequent request")
         val lookup = ConsequentLookup(
             systemId = systemId,
             ruleId = ruleId,

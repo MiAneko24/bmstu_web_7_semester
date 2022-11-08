@@ -1,8 +1,5 @@
 package com.mianeko.fuzzyinferencesystemsbackend.database.entities
 
-import com.mianeko.fuzzyinferencesystemsbackend.database.entities.enums.DBAntecedentConnection
-import com.mianeko.fuzzyinferencesystemsbackend.services.models.Rule
-import com.mianeko.fuzzyinferencesystemsbackend.services.models.RuleTemplate
 import javax.persistence.*
 
 @Entity
@@ -29,16 +26,7 @@ data class DBRule(
     @OneToMany(mappedBy = "rule")
     @Column(name = "c_id")
     val consequents: List<DBConsequent>,
-) {
-    fun toModel() = Rule(
-        id = this.id,
-        inferenceSystem = this.system.toModel(),
-        antecedentConnection = DBAntecedentConnection.fromString(this.antecedentConnection).toAntecedentConnection(),
-        weight = this.weight,
-        antecedents = this.antecedents.map { it.toModel() },
-        consequents = this.consequents.map { it.toModel() }
-    )
-}
+)
 
 
 @Entity
@@ -64,17 +52,4 @@ data class DBInsertableRule(
 //    @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
 //    @JoinColumn(name = "c_id", referencedColumnName = "r_id")
 //    val consequents: List<DBInsertableConsequent>,
-) {
-    companion object {
-        fun fromModel(rule: RuleTemplate): DBInsertableRule {
-            return DBInsertableRule(
-                id = rule.id,
-                system = rule.systemId,
-                antecedentConnection = rule.antecedentConnection.toString(),
-                weight = rule.weight,
-                antecedents = rule.antecedents.map { DBInsertableAntecedent.fromModel(it) },
-//                consequents = rule.consequents.map { DBInsertableConsequent.fromModel(it) }
-            )
-        }
-    }
-}
+)

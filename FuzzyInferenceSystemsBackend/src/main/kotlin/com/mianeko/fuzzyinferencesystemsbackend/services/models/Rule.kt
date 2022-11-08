@@ -1,7 +1,5 @@
 package com.mianeko.fuzzyinferencesystemsbackend.services.models
 
-import com.mianeko.fuzzyinferencesystemsbackend.DTO.PartialRuleDTO
-import com.mianeko.fuzzyinferencesystemsbackend.DTO.RuleDTO
 import com.mianeko.fuzzyinferencesystemsbackend.services.models.enums.AntecedentConnection
 import com.mianeko.fuzzyinferencesystemsbackend.services.models.enums.FuzzySystemType
 import kotlin.math.abs
@@ -57,21 +55,6 @@ data class Rule(
             }
         return "$antecedentsText $consequentsText"
     }
-
-    fun toDTO() = RuleDTO(
-        id = this.id,
-        text = this.getText(),
-        systemId = this.inferenceSystem.id,
-        antecedentIds = this.antecedents.map { it.id },
-        antecedentConnection = this.antecedentConnection,
-        weight = this.weight
-    )
-
-    fun toPartialDTO() = PartialRuleDTO(
-        id = this.id,
-        text = this.getText(),
-        systemId = this.inferenceSystem.id
-    )
 }
 
 data class RuleTemplate(
@@ -81,22 +64,3 @@ data class RuleTemplate(
     val weight: Double,
     val antecedents: List<AntecedentTemplate>
 )
-
-data class RuleTemplateDTO(
-    val id: Int?,
-    val systemId: Int,
-    val antecedentConnection: AntecedentConnection,
-    val weight: Double,
-    val antecedents: List<Int>?
-) {
-    fun toModel(
-        id: Int,
-        antecedents: List<AntecedentTemplate>
-    ) = RuleTemplate(
-        id = id,
-        systemId = this.systemId,
-        antecedentConnection = this.antecedentConnection,
-        weight = this.weight,
-        antecedents = antecedents
-    )
-}

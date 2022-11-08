@@ -1,18 +1,16 @@
 package com.mianeko.fuzzyinferencesystemsbackend.database.repositories
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.mianeko.fuzzyinferencesystemsbackend.DTODb.VariableDTODb
+import com.mianeko.fuzzyinferencesystemsbackend.DTODb.VariableTemplateDTODb
 import com.mianeko.fuzzyinferencesystemsbackend.database.entities.DBVariable
-import com.mianeko.fuzzyinferencesystemsbackend.database.entities.DBInsertableVariable
-import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.VariableLookup
 import com.mianeko.fuzzyinferencesystemsbackend.exceptions.SystemNotExistException
 import com.mianeko.fuzzyinferencesystemsbackend.exceptions.VariableSaveException
 import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.PageSettings
-import com.mianeko.fuzzyinferencesystemsbackend.services.models.Variable
-import com.mianeko.fuzzyinferencesystemsbackend.services.models.VariableTemplate
+import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.VariableLookup
 import io.ebean.Database
 import org.springframework.stereotype.Repository
 
-interface VariableRepository : DatabaseRepository<Variable, VariableTemplate, VariableLookup>
+interface VariableRepository : DatabaseRepository<VariableDTODb, VariableTemplateDTODb, VariableLookup>
 
 @Repository
 class VariableRepositoryImpl(
@@ -21,7 +19,7 @@ class VariableRepositoryImpl(
     override fun idExists(id: Int) =
         db.find(DBVariable::class.java, id) != null
 
-    override fun save(model: VariableTemplate): Variable {
+    override fun save(model: VariableTemplateDTODb): VariableDTODb {
         val lookup = VariableLookup(
             systemId = model.systemId,
             variableId = model.id
@@ -33,9 +31,9 @@ class VariableRepositoryImpl(
 
         try {
             if (dbModel == null)
-                db.save(DBInsertableVariable.fromModel(model))
+                db.save(model.toModelDb())
             else
-                db.update(DBInsertableVariable.fromModel(model))
+                db.update(model.toModelDb())
         } catch (e: Exception) {
             throw VariableSaveException(model.id)
         }
@@ -50,22 +48,25 @@ class VariableRepositoryImpl(
         }
     }
 
-    override fun findOne(lookup: VariableLookup): Variable? =
-        lookup.variableId?.let {
+    override fun findOne(lookup: VariableLookup): VariableDTODb? =
+        lookup.variableId?.let { id ->
             db.find(DBVariable::class.java)
                 .where()
                 .eq("s_id", lookup.systemId)
-                .eq("v_id", it)
+                .eq("v_id", id)
                 .findOne()
-                ?.toModel()
+                ?.let { VariableDTODb.fromModelDb(it) }
         }
 
-    override fun findAll(lookup: VariableLookup, pageSettings: PageSettings): List<Variable> =
+    override fun findAll(
+        lookup: VariableLookup,
+        pageSettings: PageSettings
+    ): List<VariableDTODb> =
         db.find(DBVariable::class.java)
             .where()
             .eq("s_id", lookup.systemId)
             .setMaxRows(pageSettings.size)
             .setFirstRow(pageSettings.page * pageSettings.size)
             .findList()
-            .map{ it.toModel() }
+            .map{ VariableDTODb.fromModelDb(it) }
 }

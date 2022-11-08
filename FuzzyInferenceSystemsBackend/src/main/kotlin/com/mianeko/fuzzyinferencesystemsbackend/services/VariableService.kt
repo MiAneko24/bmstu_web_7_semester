@@ -1,17 +1,17 @@
 package com.mianeko.fuzzyinferencesystemsbackend.services
 
-import com.mianeko.fuzzyinferencesystemsbackend.DTO.VariableDTO
+import com.mianeko.fuzzyinferencesystemsbackend.DTODb.VariableTemplateDTODb
+import com.mianeko.fuzzyinferencesystemsbackend.DTONet.VariableDTONet
+import com.mianeko.fuzzyinferencesystemsbackend.DTONet.VariableTemplateDTONet
 import com.mianeko.fuzzyinferencesystemsbackend.database.repositories.SystemRepository
 import com.mianeko.fuzzyinferencesystemsbackend.database.repositories.VariableRepository
 import com.mianeko.fuzzyinferencesystemsbackend.exceptions.SystemNotExistException
 import com.mianeko.fuzzyinferencesystemsbackend.exceptions.VariableNotExistException
 import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.PageSettings
 import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.VariableLookup
-import com.mianeko.fuzzyinferencesystemsbackend.services.models.VariableTemplateDTO
-import org.springdoc.core.converters.models.Pageable
 import org.springframework.stereotype.Service
 
-interface VariableService : CrudService<VariableDTO, VariableTemplateDTO, VariableLookup>
+interface VariableService : CrudService<VariableDTONet, VariableTemplateDTONet, VariableLookup>
 
 @Service
 class VariableServiceImpl(
@@ -23,40 +23,48 @@ class VariableServiceImpl(
             throw SystemNotExistException(systemId)
     }
 
-    override fun create(model: VariableTemplateDTO): VariableDTO {
+    override fun create(model: VariableTemplateDTONet): VariableDTONet {
         checkPath(model.systemId)
 
-        return variableRepository.save(
-            model.toModel(generateId()),
-        ).toDTO()
+        return VariableDTONet.fromModel(
+            variableRepository.save(
+                VariableTemplateDTODb.fromModel(
+                    model.toModel(generateId())
+                )
+            ).toModel()
+        )
     }
 
-    override fun get(lookupEntity: VariableLookup): VariableDTO {
+    override fun get(lookupEntity: VariableLookup): VariableDTONet {
         checkPath(lookupEntity.systemId)
 
         return variableRepository
                 .findOne(lookupEntity)
-                ?.toDTO()
+                ?.let { VariableDTONet.fromModel(it.toModel()) }
             ?: throw VariableNotExistException(lookupEntity.variableId)
     }
 
-    override fun getAll(lookupEntity: VariableLookup, pageSettings: PageSettings): List<VariableDTO> {
+    override fun getAll(lookupEntity: VariableLookup, pageSettings: PageSettings): List<VariableDTONet> {
         checkPath(lookupEntity.systemId)
 
         return variableRepository
             .findAll(lookupEntity, pageSettings)
-            .map { it.toDTO() }
+            .map { VariableDTONet.fromModel(it.toModel()) }
     }
 
-    override fun update(model: VariableTemplateDTO): VariableDTO {
+    override fun update(model: VariableTemplateDTONet): VariableDTONet {
         checkPath(model.systemId)
 
         if (model.id == null || !variableRepository.idExists(model.id))
             throw VariableNotExistException(model.id)
 
-        return variableRepository
-            .save(model.toModel(model.id))
-            .toDTO()
+        return VariableDTONet.fromModel(
+            variableRepository.save(
+                VariableTemplateDTODb.fromModel(
+                    model.toModel(model.id)
+                )
+            ).toModel()
+        )
     }
 
     override fun delete(lookupEntity: VariableLookup) {

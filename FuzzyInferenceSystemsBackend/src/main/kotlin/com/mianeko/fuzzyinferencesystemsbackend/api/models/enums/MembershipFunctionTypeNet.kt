@@ -5,47 +5,47 @@ import com.mianeko.fuzzyinferencesystemsbackend.exceptions.FunctionTypeException
 import com.mianeko.fuzzyinferencesystemsbackend.services.models.enums.MembershipFunctionType
 
 enum class MembershipFunctionTypeNet(@JsonValue val text: String) {
-    Shoulder("shoulder"),
-    Gauss("gauss"),
-    Triangle("triangle"),
-    Trapezoidal("trapezoidal"),
-    Linguistic("linguistic"),
-    Linear("linear"),
-    Crisp("crisp");
+    shoulder("shoulder"),
+    gauss("gauss"),
+    triangle("triangle"),
+    trapezoidal("trapezoidal"),
+    linguistic("linguistic"),
+    linear("linear"),
+    crisp("crisp");
 
     fun toMembershipFunctionType() =
         when (this) {
-            Shoulder -> MembershipFunctionType.Shoulder
-            Gauss -> MembershipFunctionType.Gauss
-            Triangle -> MembershipFunctionType.Triangle
-            Trapezoidal -> MembershipFunctionType.Trapezoidal
-            Linguistic -> MembershipFunctionType.Linguistic
-            Linear -> MembershipFunctionType.Linear
-            Crisp -> MembershipFunctionType.Crisp
+            shoulder -> MembershipFunctionType.Shoulder
+            gauss -> MembershipFunctionType.Gauss
+            triangle -> MembershipFunctionType.Triangle
+            trapezoidal -> MembershipFunctionType.Trapezoidal
+            linguistic -> MembershipFunctionType.Linguistic
+            linear -> MembershipFunctionType.Linear
+            crisp -> MembershipFunctionType.Crisp
         }
 
 
     companion object {
         fun fromMembershipFunctionType(membershipFunctionType: MembershipFunctionType) =
             when(membershipFunctionType) {
-                MembershipFunctionType.Shoulder -> Shoulder
-                MembershipFunctionType.Gauss -> Gauss
-                MembershipFunctionType.Triangle -> Triangle
-                MembershipFunctionType.Trapezoidal -> Trapezoidal
-                MembershipFunctionType.Linguistic -> Linguistic
-                MembershipFunctionType.Linear -> Linear
-                MembershipFunctionType.Crisp -> Crisp
+                MembershipFunctionType.Shoulder -> shoulder
+                MembershipFunctionType.Gauss -> gauss
+                MembershipFunctionType.Triangle -> triangle
+                MembershipFunctionType.Trapezoidal -> trapezoidal
+                MembershipFunctionType.Linguistic -> linguistic
+                MembershipFunctionType.Linear -> linear
+                MembershipFunctionType.Crisp -> crisp
             }
 
         fun fromString(s: String) =
             when (s) {
-                "gauss" -> Gauss
-                "linear" -> Linear
-                "linguistic" -> Linguistic
-                "shoulder" -> Shoulder
-                "trapezoidal" -> Trapezoidal
-                "triangle" -> Triangle
-                "crisp" -> Crisp
+                "gauss" -> gauss
+                "linear" -> linear
+                "linguistic" -> linguistic
+                "shoulder" -> shoulder
+                "trapezoidal" -> trapezoidal
+                "triangle" -> triangle
+                "crisp" -> crisp
                 else -> throw FunctionTypeException(s)
             }
     }

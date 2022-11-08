@@ -1,7 +1,10 @@
 package com.mianeko.fuzzyinferencesystemsbackend.api
 
+import com.mianeko.fuzzyinferencesystemsbackend.DTONet.MembershipFunctionTemplateDTONet
 import com.mianeko.fuzzyinferencesystemsbackend.api.exceptions.*
-import com.mianeko.fuzzyinferencesystemsbackend.api.models.*
+import com.mianeko.fuzzyinferencesystemsbackend.api.models.MembershipFunctionNet
+import com.mianeko.fuzzyinferencesystemsbackend.api.models.MembershipFunctionTemplateNet
+import com.mianeko.fuzzyinferencesystemsbackend.api.models.PartialMembershipFunctionNet
 import com.mianeko.fuzzyinferencesystemsbackend.exceptions.*
 import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.MembershipFunctionLookup
 import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.PageSettings
@@ -9,19 +12,23 @@ import com.mianeko.fuzzyinferencesystemsbackend.services.MembershipFunctionServi
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
-import io.swagger.v3.oas.annotations.media.ExampleObject
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
-import javax.websocket.MessageHandler.Partial
 
 @RestController
 @RequestMapping("/systems/{systemId}/membershipFunctions")
 class MembershipFunctionsApiHandler(
-    private val membershipFunctionService: MembershipFunctionService
+    private val membershipFunctionService: MembershipFunctionService,
+    @Value("\${server.servlet.application-display-name}") val serverName: String
 ) {
+    private val log: Logger = LoggerFactory.getLogger(this::class.java)
+
     @Operation(summary = "Get membership functions by system ID")
     @ApiResponses(value = [
         ApiResponse(responseCode = "200", description = "Successful Request",
@@ -40,6 +47,7 @@ class MembershipFunctionsApiHandler(
         @RequestParam(value = "page", defaultValue = "0", required = false) page: Int,
         @RequestParam(value = "size", defaultValue = Int.MAX_VALUE.toString(), required = false) size: Int
     ): List<PartialMembershipFunctionNet> {
+        log.info("$serverName| Get membership functions request")
         try {
             val lookup = MembershipFunctionLookup(
                 systemId = systemId,
@@ -51,7 +59,7 @@ class MembershipFunctionsApiHandler(
                 lookup,
                 PageSettings(page, size)
             )
-                .map { PartialMembershipFunctionNet.fromDTO(it) }
+                .map { it.toPartialModelNet() }
         } catch (e: SystemNotExistException) {
             throw SystemNotFoundException()
         }
@@ -74,12 +82,11 @@ class MembershipFunctionsApiHandler(
         @PathVariable systemId: Int,
         @RequestBody membershipFunction: MembershipFunctionTemplateNet
     ): PartialMembershipFunctionNet {
+        log.info("$serverName| Post membership functions request")
         try {
-            return PartialMembershipFunctionNet.fromDTO(
-                membershipFunctionService.create(
-                    membershipFunction.toDTO(systemId, null)
-                )
-            )
+            return membershipFunctionService.create(
+                    MembershipFunctionTemplateDTONet.fromModelNet(membershipFunction, systemId, null))
+                .toPartialModelNet()
         } catch (e: SystemNotExistException) {
             throw SystemNotFoundException()
         } catch (e: FunctionSaveException) {
@@ -112,6 +119,7 @@ class MembershipFunctionsApiHandler(
         @PathVariable systemId: Int,
         @PathVariable membershipFunctionId: Int
     ): MembershipFunctionNet {
+        log.info("$serverName| Get membership function with id $membershipFunctionId request")
         try {
             val lookup = MembershipFunctionLookup(
                 systemId = systemId,
@@ -119,7 +127,7 @@ class MembershipFunctionsApiHandler(
                 membershipFunctionId = membershipFunctionId
             )
 
-            return MembershipFunctionNet.fromDTO(membershipFunctionService.get(lookup))
+            return membershipFunctionService.get(lookup).toModelNet()
         } catch (e: SystemNotExistException) {
             throw SystemNotFoundException()
         } catch (e: FunctionNotExistException) {
@@ -147,12 +155,11 @@ class MembershipFunctionsApiHandler(
         @PathVariable membershipFunctionId: Int,
         @RequestBody membershipFunctionNet: MembershipFunctionTemplateNet
     ): MembershipFunctionNet {
+        log.info("$serverName| Put membership function request")
         try {
-            return MembershipFunctionNet.fromDTO(
-                membershipFunctionService.update(
-                    membershipFunctionNet.toDTO(systemId, membershipFunctionId)
-                )
-            )
+            return membershipFunctionService.update(
+                    MembershipFunctionTemplateDTONet.fromModelNet(membershipFunctionNet, systemId, membershipFunctionId)
+                ).toModelNet()
         } catch (e: SystemNotExistException) {
             throw SystemNotFoundException()
         } catch (e: FunctionSaveException) {
@@ -182,6 +189,7 @@ class MembershipFunctionsApiHandler(
         @PathVariable systemId: Int,
         @PathVariable membershipFunctionId: Int,
     ) {
+        log.info("$serverName| Delete membership function request")
         val lookup = MembershipFunctionLookup(
             systemId = systemId,
             variableId = null,

@@ -1,6 +1,8 @@
 package com.mianeko.fuzzyinferencesystemsbackend.services
 
-import com.mianeko.fuzzyinferencesystemsbackend.DTO.ConsequentDTO
+import com.mianeko.fuzzyinferencesystemsbackend.DTODb.ConsequentTemplateDTODb
+import com.mianeko.fuzzyinferencesystemsbackend.DTONet.ConsequentDTONet
+import com.mianeko.fuzzyinferencesystemsbackend.DTONet.ConsequentTemplateDTONet
 import com.mianeko.fuzzyinferencesystemsbackend.database.repositories.ConsequentRepository
 import com.mianeko.fuzzyinferencesystemsbackend.database.repositories.RuleRepository
 import com.mianeko.fuzzyinferencesystemsbackend.database.repositories.SystemRepository
@@ -9,11 +11,9 @@ import com.mianeko.fuzzyinferencesystemsbackend.exceptions.RuleNotExistException
 import com.mianeko.fuzzyinferencesystemsbackend.exceptions.SystemNotExistException
 import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.ConsequentLookup
 import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.PageSettings
-import com.mianeko.fuzzyinferencesystemsbackend.services.models.ConsequentTemplateDTO
-import org.springdoc.core.converters.models.Pageable
 import org.springframework.stereotype.Service
 
-interface ConsequentService : CrudService<ConsequentDTO, ConsequentTemplateDTO, ConsequentLookup>
+interface ConsequentService : CrudService<ConsequentDTONet, ConsequentTemplateDTONet, ConsequentLookup>
 
 @Service
 class ConsequentServiceImpl(
@@ -29,38 +29,48 @@ class ConsequentServiceImpl(
             throw RuleNotExistException(ruleId)
     }
 
-    override fun create(model: ConsequentTemplateDTO): ConsequentDTO {
+    override fun create(model: ConsequentTemplateDTONet): ConsequentDTONet {
         checkPath(model.systemId, model.ruleId)
 
-        return consequentRepository.save(
-            model.toModel(generateId())
-        ).toDTO()
+        return ConsequentDTONet.fromModel(
+            consequentRepository.save(
+                ConsequentTemplateDTODb.fromModel(
+                    model.toModel(
+                        generateId()
+                    )
+                )
+            ).toModel()
+        )
     }
 
-    override fun get(lookupEntity: ConsequentLookup): ConsequentDTO {
+    override fun get(lookupEntity: ConsequentLookup): ConsequentDTONet {
         checkPath(lookupEntity.systemId, lookupEntity.ruleId)
 
         return consequentRepository
                 .findOne(lookupEntity)
-                ?.toDTO()
+                ?.let{ ConsequentDTONet.fromModel(it.toModel()) }
             ?: throw ConsequentNotExistException(lookupEntity.consequentId)
     }
 
-    override fun getAll(lookupEntity: ConsequentLookup, pageSettings: PageSettings): List<ConsequentDTO> {
+    override fun getAll(lookupEntity: ConsequentLookup, pageSettings: PageSettings): List<ConsequentDTONet> {
         checkPath(lookupEntity.systemId, lookupEntity.ruleId)
 
-        return consequentRepository.findAll(lookupEntity, pageSettings).map { it.toDTO() }
+        return consequentRepository.findAll(lookupEntity, pageSettings).map { ConsequentDTONet.fromModel(it.toModel()) }
     }
 
-    override fun update(model: ConsequentTemplateDTO): ConsequentDTO {
+    override fun update(model: ConsequentTemplateDTONet): ConsequentDTONet {
         checkPath(model.systemId, model.ruleId)
 
         if (model.id == null || !consequentRepository.idExists(model.id))
             throw ConsequentNotExistException(model.id)
 
-        return consequentRepository.save(
-            model.toModel(model.id)
-        ).toDTO()
+        return ConsequentDTONet.fromModel(
+            consequentRepository.save(
+                ConsequentTemplateDTODb.fromModel(
+                    model.toModel(model.id)
+                )
+            ).toModel()
+        )
     }
 
     override fun delete(lookupEntity: ConsequentLookup) {

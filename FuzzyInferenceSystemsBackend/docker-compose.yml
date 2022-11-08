@@ -10,6 +10,8 @@ services:
       - POSTGRES_PASSWORD=123
       - POSTGRES_DB=fuzzydb
       - POSTGRES_PORT=5432
+      - APPLICATION_NAME=Read-only backend 1
+      - URL=http://localhost:9091/api/v1/api
     ports:
       - "8070:8080"
     links:
@@ -25,6 +27,8 @@ services:
       - POSTGRES_PASSWORD=123
       - POSTGRES_DB=fuzzydb
       - POSTGRES_PORT=5432
+      - APPLICATION_NAME=Read-only backend 2
+      - URL=http://localhost:9091/api/v1/api
     ports:
       - "8071:8080"
     links:
@@ -40,6 +44,8 @@ services:
       - POSTGRES_PASSWORD=fc28glmsia57
       - POSTGRES_DB=fuzzydb
       - POSTGRES_PORT=5432
+      - APPLICATION_NAME=Main backend
+      - URL=http://localhost:9091/api/v1/api
     links:
       - "fuzzy-db:fuzzydb"
     ports:
@@ -53,12 +59,21 @@ services:
       - POSTGRES_PASSWORD=fc28glmsia57
       - POSTGRES_DB=fuzzydb
       - POSTGRES_PORT=5432
+      - APPLICATION_NAME=Mirror backend
+      - URL=http://localhost:9091/mirror1/api/v1/api/
     links:
-      - "fuzzy-db:fuzzydb"
+      - "mirror-fuzzy-db:fuzzydb"
     ports:
       - "8081:8080"
     depends_on:
-      - fuzzy-db
+      - mirror-fuzzy-db
+  mirror-fuzzy-db:
+    image: postgres
+    restart: unless-stopped
+    ports:
+      - "5728:5432"
+    volumes:
+      - /var/lib/docker/volumes/f8958bc03f8b58eeeebdcc812a0f3161095eb9010c8aaac7e06249b8a7d99feb/_data:/var/lib/postgresql/data
   fuzzy-db:
     image: postgres
     restart: unless-stopped

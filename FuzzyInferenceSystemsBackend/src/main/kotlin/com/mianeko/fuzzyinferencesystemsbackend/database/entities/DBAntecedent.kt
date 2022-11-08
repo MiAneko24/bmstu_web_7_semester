@@ -1,7 +1,5 @@
 package com.mianeko.fuzzyinferencesystemsbackend.database.entities
 
-import com.mianeko.fuzzyinferencesystemsbackend.services.models.Antecedent
-import com.mianeko.fuzzyinferencesystemsbackend.services.models.AntecedentTemplate
 import javax.persistence.*
 
 @Entity
@@ -14,12 +12,7 @@ data class DBAntecedent (
     @ManyToOne
     @JoinColumn(name = "m_id", referencedColumnName = "m_id")
     val membershipFunction: DBMembershipFunction,
-) {
-    fun toModel(): Antecedent = Antecedent(
-        id = this.id,
-        membershipFunction = this.membershipFunction.toModel()
-    )
-}
+)
 
 
 @Entity
@@ -31,11 +24,4 @@ data class DBInsertableAntecedent (
 
     @Column(name = "m_id")
     val membershipFunction: Int,
-) {
-    companion object {
-        fun fromModel(antecedent: AntecedentTemplate) = DBInsertableAntecedent(
-            id = antecedent.id,
-            membershipFunction = antecedent.membershipFunctionId
-        )
-    }
-}
+)

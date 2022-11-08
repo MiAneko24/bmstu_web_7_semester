@@ -1,6 +1,8 @@
 package com.mianeko.fuzzyinferencesystemsbackend.services
 
-import com.mianeko.fuzzyinferencesystemsbackend.DTO.RuleDTO
+import com.mianeko.fuzzyinferencesystemsbackend.DTODb.RuleTemplateDTODb
+import com.mianeko.fuzzyinferencesystemsbackend.DTONet.RuleDTONet
+import com.mianeko.fuzzyinferencesystemsbackend.DTONet.RuleTemplateDTONet
 import com.mianeko.fuzzyinferencesystemsbackend.database.repositories.AntecedentRepository
 import com.mianeko.fuzzyinferencesystemsbackend.database.repositories.RuleRepository
 import com.mianeko.fuzzyinferencesystemsbackend.database.repositories.SystemRepository
@@ -10,11 +12,9 @@ import com.mianeko.fuzzyinferencesystemsbackend.exceptions.SystemNotExistExcepti
 import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.AntecedentLookup
 import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.PageSettings
 import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.RuleLookup
-import com.mianeko.fuzzyinferencesystemsbackend.services.models.RuleTemplateDTO
-import org.springdoc.core.converters.models.Pageable
 import org.springframework.stereotype.Service
 
-interface RuleService : CrudService<RuleDTO, RuleTemplateDTO, RuleLookup>
+interface RuleService : CrudService<RuleDTONet, RuleTemplateDTONet, RuleLookup>
 
 @Service
 class RuleServiceImpl(
@@ -27,35 +27,38 @@ class RuleServiceImpl(
             throw SystemNotExistException(systemId)
     }
 
-    override fun get(lookupEntity: RuleLookup): RuleDTO {
+    override fun get(lookupEntity: RuleLookup): RuleDTONet {
         checkPath(lookupEntity.systemId)
 
         return ruleRepository
             .findOne(lookupEntity)
-            ?.toDTO()
+            ?.let {
+                RuleDTONet.fromModel(it.toModel())
+            }
             ?: throw RuleNotExistException(lookupEntity.ruleId)
     }
 
-    override fun getAll(lookupEntity: RuleLookup, pageSettings: PageSettings): List<RuleDTO> {
+    override fun getAll(lookupEntity: RuleLookup, pageSettings: PageSettings): List<RuleDTONet> {
         checkPath(lookupEntity.systemId)
 
         return ruleRepository
             .findAll(lookupEntity, pageSettings)
-            .map { it.toDTO() }
+            .map { RuleDTONet.fromModel(it.toModel()) }
     }
 
-    override fun create(model: RuleTemplateDTO): RuleDTO {
+    override fun create(model: RuleTemplateDTONet): RuleDTONet {
         checkPath(model.systemId)
 
-        return ruleRepository.save(
-            model.toModel(
-                generateId(),
-                emptyList()
-            ),
-        ).toDTO()
+        return RuleDTONet.fromModel(
+            ruleRepository.save(
+                RuleTemplateDTODb.fromModel(
+                    model.toModel(generateId(), emptyList())
+                )
+            ).toModel()
+        )
     }
 
-    override fun update(model: RuleTemplateDTO): RuleDTO {
+    override fun update(model: RuleTemplateDTONet): RuleDTONet {
         checkPath(model.systemId)
 
         if (model.id == null)
@@ -75,16 +78,19 @@ class RuleServiceImpl(
                 antecedentId = it
             )
 
-            antecedentRepository.findOne(lookup)
+            antecedentRepository.findOne(lookup)?.toModel()
             ?: throw AntecedentNotExistException(it)
-        } ?: rule.antecedents
+        } ?: rule.antecedents.map { it.toModel() }
 
-        return ruleRepository.save(
-            model.toModel(
-                model.id,
-                antecedents.map { it.toTemplate(model.systemId) }
-            ),
-        ).toDTO()
+        return RuleDTONet.fromModel(ruleRepository.save(
+            RuleTemplateDTODb.fromModel(
+                model.toModel(
+                    model.id,
+                    antecedents.map { it.toTemplate(model.systemId) }
+                )
+            )
+        ).toModel()
+        )
     }
 
     override fun delete(lookupEntity: RuleLookup) {

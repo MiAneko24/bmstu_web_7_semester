@@ -1,8 +1,11 @@
 package com.mianeko.fuzzyinferencesystemsbackend.api
 
+import com.mianeko.fuzzyinferencesystemsbackend.DTONet.SystemTemplateDTONet
 import com.mianeko.fuzzyinferencesystemsbackend.api.exceptions.IncorrectSystemBody
 import com.mianeko.fuzzyinferencesystemsbackend.api.exceptions.SystemNotFoundException
-import com.mianeko.fuzzyinferencesystemsbackend.api.models.*
+import com.mianeko.fuzzyinferencesystemsbackend.api.models.PartialSystemNet
+import com.mianeko.fuzzyinferencesystemsbackend.api.models.SystemNet
+import com.mianeko.fuzzyinferencesystemsbackend.api.models.SystemTemplateNet
 import com.mianeko.fuzzyinferencesystemsbackend.exceptions.SystemNotExistException
 import com.mianeko.fuzzyinferencesystemsbackend.exceptions.SystemSaveException
 import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.PageSettings
@@ -16,13 +19,15 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/systems")
 class SystemsApiHandler(
-    private val systemService: SystemService
+    private val systemService: SystemService,
+    @Value("\${server.servlet.application-display-name}") val serverName: String
 ) {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
@@ -43,13 +48,14 @@ class SystemsApiHandler(
         @RequestParam(value = "page", defaultValue = "0", required = false) page: Int,
         @RequestParam(value = "size", defaultValue = Int.MAX_VALUE.toString(), required = false) size: Int
     ): List<PartialSystemNet> {
+        log.info("$serverName| Get systems request")
         val lookup = SystemLookup(
             systemId = null
         )
 
         return systemService
             .getAll(lookup, PageSettings(page, size))
-            .map { PartialSystemNet.fromDTO(it) }
+            .map { it.toPartialModelNet() }
     }
 
     @Operation(summary = "Add new fuzzy inference system")
@@ -69,12 +75,11 @@ class SystemsApiHandler(
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun addSystem(@RequestBody systemTemplateNet: SystemTemplateNet): PartialSystemNet {
+        log.info("$serverName| Post system request")
         try {
-            return PartialSystemNet.fromDTO(
-                systemService.create(
-                    systemTemplateNet.toDTO(null)
-                )
-            )
+            return systemService.create(
+                    SystemTemplateDTONet.fromModelNet(systemTemplateNet, null)
+                ).toPartialModelNet()
         } catch (e: SystemSaveException) {
             throw IncorrectSystemBody()
         }
@@ -94,12 +99,14 @@ class SystemsApiHandler(
     )
     @GetMapping("/{id}")
     fun getSystem(@PathVariable id: Int): SystemNet {
+        log.info("$serverName| Get system with id = $id request")
+
         try {
             val lookup = SystemLookup(
                 systemId = id
             )
 
-            return SystemNet.fromDTO(systemService.get(lookup))
+            return systemService.get(lookup).toModelNet()
         } catch (e: SystemNotExistException) {
             throw SystemNotFoundException()
         }
@@ -124,8 +131,9 @@ class SystemsApiHandler(
         @PathVariable id: Int,
         @RequestBody systemNet: SystemTemplateNet
     ): SystemNet {
+        log.info("$serverName| Put system request")
         try {
-            return SystemNet.fromDTO(systemService.update(systemNet.toDTO(id)))
+            return systemService.update(SystemTemplateDTONet.fromModelNet(systemNet, id)).toModelNet()
         } catch (e: SystemNotExistException) {
             throw SystemNotFoundException()
         } catch (e: SystemSaveException) {
@@ -144,15 +152,12 @@ class SystemsApiHandler(
     )
     @DeleteMapping("/{id}")
     fun deleteSystem(@PathVariable id: Int) {
+        log.info("$serverName| Delete system request")
+
         val lookup = SystemLookup(
             systemId = id
         )
 
         systemService.delete(lookup)
-    }
-
-    @GetMapping("/{id}/output")
-    fun getOutput(@PathVariable id: Int): List<VariableNet> {
-        return listOf()
     }
 }

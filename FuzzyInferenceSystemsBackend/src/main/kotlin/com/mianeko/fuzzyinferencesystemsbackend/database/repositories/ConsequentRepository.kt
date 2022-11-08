@@ -1,29 +1,25 @@
 package com.mianeko.fuzzyinferencesystemsbackend.database.repositories
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.mianeko.fuzzyinferencesystemsbackend.DTODb.ConsequentDTODb
+import com.mianeko.fuzzyinferencesystemsbackend.DTODb.ConsequentTemplateDTODb
 import com.mianeko.fuzzyinferencesystemsbackend.database.entities.DBConsequent
-import com.mianeko.fuzzyinferencesystemsbackend.database.entities.DBInsertableConsequent
-import com.mianeko.fuzzyinferencesystemsbackend.exceptions.*
+import com.mianeko.fuzzyinferencesystemsbackend.exceptions.ConsequentSaveException
+import com.mianeko.fuzzyinferencesystemsbackend.exceptions.SystemNotExistException
 import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.ConsequentLookup
 import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.PageSettings
-import com.mianeko.fuzzyinferencesystemsbackend.services.models.Consequent
-import com.mianeko.fuzzyinferencesystemsbackend.services.models.ConsequentTemplate
 import io.ebean.Database
-import org.springdoc.core.converters.models.Pageable
-import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties
 import org.springframework.stereotype.Repository
 
-interface ConsequentRepository : DatabaseRepository<Consequent, ConsequentTemplate, ConsequentLookup>
+interface ConsequentRepository : DatabaseRepository<ConsequentDTODb, ConsequentTemplateDTODb, ConsequentLookup>
 
 @Repository
 class ConsequentRepositoryImpl(
-    val db: Database,
-    val mapper: ObjectMapper
+    val db: Database
 ) : ConsequentRepository {
     override fun idExists(id: Int) =
         db.find(DBConsequent::class.java, id) != null
 
-    override fun save(model: ConsequentTemplate): Consequent {
+    override fun save(model: ConsequentTemplateDTODb): ConsequentDTODb {
         val lookup = ConsequentLookup(
             systemId = model.systemId,
             ruleId = model.ruleId,
@@ -36,9 +32,9 @@ class ConsequentRepositoryImpl(
 
         try {
             if (dbModel == null)
-                db.save(DBInsertableConsequent.fromModel(model))
+                db.save(model.toModelDb())
             else
-                db.update(DBInsertableConsequent.fromModel(model))
+                db.update(model.toModelDb())
         } catch (e: Exception) {
             throw ConsequentSaveException(model.id)
         }
@@ -53,30 +49,30 @@ class ConsequentRepositoryImpl(
         }
     }
 
-    override fun findOne(lookup: ConsequentLookup): Consequent? {
+    override fun findOne(lookup: ConsequentLookup): ConsequentDTODb? {
         val sql = "select c.* " +
                 "from consequent c join rule r on r.r_id = c.r_id " +
                 "where r.s_id = ? and c.c_id = ? and r.r_id = ?;"
-        return lookup.consequentId?.let {
+        return lookup.consequentId?.let { id ->
             db.findNative(DBConsequent::class.java, sql)
                 .setParameter(1, lookup.systemId)
-                .setParameter(2, it)
+                .setParameter(2, id)
                 .setParameter(3, lookup.ruleId)
                 .findOne()
-                ?.toModel()
+                ?.let { ConsequentDTODb.fromModelDb(it) }
         }
     }
 
-    override fun findAll(lookup: ConsequentLookup, pageSettings: PageSettings): List<Consequent> {
+    override fun findAll(lookup: ConsequentLookup, pageSettings: PageSettings): List<ConsequentDTODb> {
         val sql = "select c.* " +
                 "from consequent c join rule r on r.r_id = c.r_id " +
-                "where r.s_id = ? and r.r_id = ?;"
+                "where r.s_id = ? and r.r_id = ? "
         return db.findNative(DBConsequent::class.java, sql)
             .setParameter(1, lookup.systemId)
             .setParameter(2, lookup.ruleId)
             .setMaxRows(pageSettings.size)
             .setFirstRow(pageSettings.page * pageSettings.size)
             .findList()
-            .map { it.toModel() }
+            .map { ConsequentDTODb.fromModelDb(it) }
     }
 }

@@ -5,31 +5,31 @@ import com.mianeko.fuzzyinferencesystemsbackend.exceptions.SystemSpecializationE
 import com.mianeko.fuzzyinferencesystemsbackend.services.models.enums.SpecializationType
 
 enum class SpecializationTypeNet(@JsonValue val text: String) {
-    Physics("physics"),
-    Chemistry("chemistry"),
-    Informatics("informatics");
+    physics("physics"),
+    chemistry("chemistry"),
+    informatics("informatics");
 
     fun toSpecializationType() =
         when (this) {
-            Physics -> SpecializationType.Physics
-            Chemistry -> SpecializationType.Chemistry
-            Informatics -> SpecializationType.Informatics
+            physics -> SpecializationType.Physics
+            chemistry -> SpecializationType.Chemistry
+            informatics -> SpecializationType.Informatics
         }
 
     companion object {
         fun fromString(s: String?) =
             when (s) {
-                "physics" -> Physics
-                "chemistry" -> Chemistry
-                "informatics" -> Informatics
+                "physics" -> physics
+                "chemistry" -> chemistry
+                "informatics" -> informatics
                 else -> throw SystemSpecializationException(s)
             }
 
         fun fromSpecializationType(specializationType: SpecializationType) =
             when (specializationType) {
-                SpecializationType.Physics -> Physics
-                SpecializationType.Chemistry -> Chemistry
-                SpecializationType.Informatics -> Informatics
+                SpecializationType.Physics -> physics
+                SpecializationType.Chemistry -> chemistry
+                SpecializationType.Informatics -> informatics
             }
     }
 }

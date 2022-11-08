@@ -1,7 +1,8 @@
 server:
   servlet:
     context-path: /api
-
+    application-display-name: ${APPLICATION_NAME}
+  forward-headers-strategy: framework
 spring:
   servlet:
     multipart:
@@ -16,4 +17,8 @@ springdoc:
     path: /v1/docs/src
   swagger-ui:
     path: /v1/docs/swagger
-  headers-to-match:
+    disable-swagger-default-url: true
+  #  use-management-port: true
+  show-actuator: true
+custom:
+  server-url: ${URL}

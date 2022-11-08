@@ -10,7 +10,7 @@ enum class LinguisticHedgeTypeNet(@JsonValue val text: String) {
     Plus("Plus"),
     Not("Not"),
     NotVery("Not very"),
-    Nothing("");
+    Nothing("Nothing");
 
     fun toLinguisticHedgeType() =
         when (this) {
@@ -40,7 +40,7 @@ enum class LinguisticHedgeTypeNet(@JsonValue val text: String) {
                 "Plus" -> Plus
                 "Not" -> Not
                 "Not very" -> NotVery
-                "" -> Nothing
+                "Nothing" -> Nothing
                 else -> throw LinguisticHedgeException(s)
             }
     }
