@@ -3,7 +3,7 @@ package com.mianeko.fuzzyinferencesystemsbackend.DTONet
 import com.mianeko.fuzzyinferencesystemsbackend.api.models.DataElementNet
 import com.mianeko.fuzzyinferencesystemsbackend.api.models.JobNet
 import com.mianeko.fuzzyinferencesystemsbackend.api.models.JobTemplateNet
-import com.mianeko.fuzzyinferencesystemsbackend.services.models.Job
+import com.mianeko.fuzzyinferencesystemsbackend.jobs.models.Job
 import java.util.*
 
 data class JobTemplateDTONet(

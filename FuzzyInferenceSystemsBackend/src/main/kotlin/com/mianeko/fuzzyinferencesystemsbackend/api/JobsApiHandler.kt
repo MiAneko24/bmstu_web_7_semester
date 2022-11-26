@@ -2,11 +2,13 @@ package com.mianeko.fuzzyinferencesystemsbackend.api
 
 import com.mianeko.fuzzyinferencesystemsbackend.DTONet.JobTemplateDTONet
 import com.mianeko.fuzzyinferencesystemsbackend.api.exceptions.*
+import com.mianeko.fuzzyinferencesystemsbackend.api.models.AntecedentNet
 import com.mianeko.fuzzyinferencesystemsbackend.api.models.JobNet
 import com.mianeko.fuzzyinferencesystemsbackend.api.models.JobTemplateNet
 import com.mianeko.fuzzyinferencesystemsbackend.api.models.OutputResultNet
 import com.mianeko.fuzzyinferencesystemsbackend.exceptions.*
-import com.mianeko.fuzzyinferencesystemsbackend.services.JobsService
+import com.mianeko.fuzzyinferencesystemsbackend.jobs.JobsService
+import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.PageSettings
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
@@ -27,6 +29,34 @@ class JobsApiHandler(
 ) {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
+    @Operation(summary = "Get jobs by system ID")
+    @ApiResponses(value = [
+        ApiResponse(responseCode = "200", description = "Successful Request",
+            content = [(Content(
+                mediaType = "application/json",
+                array = ArraySchema(schema = Schema(implementation = AntecedentNet::class))
+            ))]),
+        ApiResponse(responseCode = "404", description = "Not Found",
+            content = [(Content(schema = Schema(hidden = true)))]),
+        ApiResponse(responseCode = "500", description = "Internal Server Error",
+            content = [(Content(schema = Schema(hidden = true)))])]
+    )
+    @GetMapping
+    fun getAntecedents(
+        @PathVariable systemId: Int,
+        @RequestParam(value = "page", defaultValue = "0", required = false) page: Int,
+        @RequestParam(value = "size", defaultValue = Int.MAX_VALUE.toString(), required = false) size: Int
+    ): List<JobNet> {
+        log.info("$serverName| Get system jobs")
+
+        try {
+            return jobsService
+                .getAll(systemId, PageSettings(page, size))
+                .map { it.toModelNet() }
+        } catch (e: SystemNotExistException) {
+            throw SystemNotFoundException()
+        }
+    }
     @Operation(summary = "Get result of inference system's work with defined by job input values")
     @ApiResponses(value = [
         ApiResponse(responseCode = "200", description = "Successful Request",
@@ -111,6 +141,4 @@ class JobsApiHandler(
         log.info("$serverName| Delete job for system output request")
         jobsService.delete(id)
     }
-
-
 }

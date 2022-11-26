@@ -1,4 +1,4 @@
-package com.mianeko.fuzzyinferencesystemsbackend.services
+package com.mianeko.fuzzyinferencesystemsbackend.jobs
 
 import com.mianeko.fuzzyinferencesystemsbackend.DTODb.JobDTODb
 import com.mianeko.fuzzyinferencesystemsbackend.DTODb.VariableTemplateDTODb
@@ -8,6 +8,7 @@ import com.mianeko.fuzzyinferencesystemsbackend.DTONet.OutputResultDTONet
 import com.mianeko.fuzzyinferencesystemsbackend.database.repositories.*
 import com.mianeko.fuzzyinferencesystemsbackend.exceptions.JobNotEnoughInputParametersException
 import com.mianeko.fuzzyinferencesystemsbackend.exceptions.JobNotExistException
+import com.mianeko.fuzzyinferencesystemsbackend.exceptions.SystemNotExistException
 import com.mianeko.fuzzyinferencesystemsbackend.exceptions.VariableNotExistException
 import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.AntecedentLookup
 import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.PageSettings
@@ -16,6 +17,8 @@ import org.springframework.stereotype.Service
 import java.util.*
 
 interface JobsService {
+    fun getAll(systemId: Int, pageSettings: PageSettings): List<JobDTONet>
+
     fun addJob(jobTemplateDTONet: JobTemplateDTONet): JobDTONet
 
     fun executeJob(systemId: Int, jobId: UUID): List<OutputResultDTONet>
@@ -31,6 +34,13 @@ class JobsServiceImpl(
     private val variableRepository: VariableRepository,
     private val antecedentRepository: AntecedentRepository
 ): JobsService {
+    override fun getAll(systemId: Int, pageSettings: PageSettings): List<JobDTONet> {
+        if (!systemRepository.idExists(systemId))
+            throw SystemNotExistException(systemId)
+
+        return jobRepository.getAll(systemId, pageSettings).map { JobDTONet.fromModel(it.toModel()) }
+    }
+
     override fun addJob(jobTemplateDTONet: JobTemplateDTONet): JobDTONet {
         val job = jobTemplateDTONet.toModel(UUID.randomUUID())
 

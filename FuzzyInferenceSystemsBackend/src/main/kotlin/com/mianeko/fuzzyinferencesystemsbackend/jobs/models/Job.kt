@@ -1,4 +1,4 @@
-package com.mianeko.fuzzyinferencesystemsbackend.services.models
+package com.mianeko.fuzzyinferencesystemsbackend.jobs.models
 
 import java.util.*
 

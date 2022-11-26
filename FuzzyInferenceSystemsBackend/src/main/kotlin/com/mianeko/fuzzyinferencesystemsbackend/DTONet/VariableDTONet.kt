@@ -6,7 +6,6 @@ import com.mianeko.fuzzyinferencesystemsbackend.api.models.VariableTemplateNet
 import com.mianeko.fuzzyinferencesystemsbackend.services.models.Variable
 import com.mianeko.fuzzyinferencesystemsbackend.services.models.VariableTemplate
 
-
 data class VariableDTONet(
     val id: Int,
     val name: String,

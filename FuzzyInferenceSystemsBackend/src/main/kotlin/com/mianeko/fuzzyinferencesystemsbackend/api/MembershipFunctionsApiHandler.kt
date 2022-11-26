@@ -45,13 +45,14 @@ class MembershipFunctionsApiHandler(
     fun getMembershipFunctions(
         @PathVariable systemId: Int,
         @RequestParam(value = "page", defaultValue = "0", required = false) page: Int,
-        @RequestParam(value = "size", defaultValue = Int.MAX_VALUE.toString(), required = false) size: Int
+        @RequestParam(value = "size", defaultValue = Int.MAX_VALUE.toString(), required = false) size: Int,
+        @RequestParam(value = "variableId", defaultValue = "", required = false) variableId: Int?
     ): List<PartialMembershipFunctionNet> {
         log.info("$serverName| Get membership functions request")
         try {
             val lookup = MembershipFunctionLookup(
                 systemId = systemId,
-                variableId = null,
+                variableId = variableId,
                 membershipFunctionId = null
             )
 

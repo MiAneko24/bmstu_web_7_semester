@@ -51,12 +51,13 @@ class AntecedentsApiHandler(
         @PathVariable systemId: Int,
         @RequestParam(value = "page", defaultValue = "0", required = false) page: Int,
         @RequestParam(value = "size", defaultValue = Int.MAX_VALUE.toString(), required = false) size: Int,
+        @RequestParam(value = "ruleId", defaultValue = "", required = false) ruleId: Int?
     ): List<AntecedentNet> {
         log.info("$serverName| Get antecedents request")
 
         val antecedentLookup = AntecedentLookup(
             systemId = systemId,
-            ruleId = null,
+            ruleId = ruleId,
             antecedentId = null
         )
 
