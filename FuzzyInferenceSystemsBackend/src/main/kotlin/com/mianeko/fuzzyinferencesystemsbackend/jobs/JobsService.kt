@@ -67,7 +67,7 @@ class JobsServiceImpl(
                     .map { it.name }
             )
 
-        var inputVariables = job.inputVariables.map {
+        job.inputVariables.map {
             val lookup = VariableLookup(
                 systemId = job.systemId,
                 variableId = it.key

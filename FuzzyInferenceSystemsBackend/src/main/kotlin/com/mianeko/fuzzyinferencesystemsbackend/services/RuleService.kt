@@ -61,7 +61,7 @@ class RuleServiceImpl(
     override fun update(model: RuleTemplateDTONet): RuleDTONet {
         checkPath(model.systemId)
 
-        if (model.id == null)
+        if (model.id == null || !ruleRepository.idExists(model.id))
             throw RuleNotExistException(model.id)
 
         val rule = ruleRepository.findOne(

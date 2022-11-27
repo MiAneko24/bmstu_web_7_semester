@@ -17,9 +17,9 @@ data class Rule(
             .mapIndexed { i, x ->
                 val connection =
                     if (i == 0) "if"
-                    else this.antecedentConnection.toString()
+                    else " ${this.antecedentConnection}"
 
-                " $connection $x" }.joinToString("")
+                "$connection $x" }.joinToString("")
 
         val consequentsText =
             when (this.inferenceSystem.type) {
@@ -27,7 +27,7 @@ data class Rule(
                     "${it.membershipFunction.variable?.name
                         ?: "variable"} is ${it.membershipFunction.term}"
                 }.mapIndexed{ i, x ->
-                    val connection = if (i != 0) " and" else " then"
+                    val connection = if (i != 0) " and" else "then"
                     "$connection $x"
                 }.joinToString("")
 
@@ -36,7 +36,7 @@ data class Rule(
                         if (i == 0)
                             "${it.key?.name
                                 ?: "variable"} = " +
-                                    "${x.membershipFunction.parameter1} ${x.membershipFunction.term}"
+                                    "${x.membershipFunction.parameter1} ${x.membershipFunction.variable?.name ?: ""}"
                         else
                             " ${if (x.membershipFunction.parameter1 != null
                                 && x.membershipFunction.parameter1 > 0.0)
@@ -49,7 +49,7 @@ data class Rule(
                     }.joinToString("") }
 
                     .mapIndexed{ i, x ->
-                        val connection = if (i != 0) " and" else " then"
+                        val connection = if (i != 0) "and" else "then"
                         "$connection $x"
                     }.joinToString("")
             }
