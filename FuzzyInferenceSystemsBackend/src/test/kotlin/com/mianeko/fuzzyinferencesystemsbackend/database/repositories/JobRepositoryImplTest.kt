@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.*
 import java.util.*
 
-internal class JobRepositoryImplTest {
+class JobRepositoryImplTest {
     private val database: Database = mock()
     private val jobRepositoryImpl: JobRepositoryImpl = JobRepositoryImpl(database)
     private val queryMock: Query<DBJob> = mock()

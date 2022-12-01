@@ -27,6 +27,7 @@ data class SystemDTONet(
     )
 
     fun toModelNet() = SystemNet(
+        id = this.id,
         name = this.name,
         type = this.type.toFuzzySystemTypeNet(),
         specializationType = this.specializationType.toSpecializationTypeNet()

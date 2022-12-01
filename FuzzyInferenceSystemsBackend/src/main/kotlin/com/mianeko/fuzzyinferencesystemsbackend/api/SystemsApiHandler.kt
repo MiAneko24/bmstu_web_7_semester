@@ -54,7 +54,7 @@ class SystemsApiHandler(
         )
 
         return systemService
-            .getAll(lookup, PageSettings(page, size))
+            .getAll(lookup, PageSettings(page - 1, size))
             .map { it.toPartialModelNet() }
     }
 

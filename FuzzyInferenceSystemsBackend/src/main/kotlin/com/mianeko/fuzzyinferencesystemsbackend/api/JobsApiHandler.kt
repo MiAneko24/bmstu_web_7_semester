@@ -51,7 +51,7 @@ class JobsApiHandler(
 
         try {
             return jobsService
-                .getAll(systemId, PageSettings(page, size))
+                .getAll(systemId, PageSettings(page - 1, size))
                 .map { it.toModelNet() }
         } catch (e: SystemNotExistException) {
             throw SystemNotFoundException()

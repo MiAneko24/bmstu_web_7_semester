@@ -16,6 +16,7 @@ import com.mianeko.fuzzyinferencesystemsbackend.objectBuilders.templates.Anteced
 import io.ebean.Database
 import io.ebean.Query
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
@@ -95,6 +96,7 @@ class AntecedentRepositoryImplTest {
 
 
     @Test
+    @DisplayName("Check if antecedent id exists in database; positive test")
     fun idExistsInDatabase() {
         val antecedentId = DBAntecedentBuilder.nDBAntecedent().build().id
         val expected = true

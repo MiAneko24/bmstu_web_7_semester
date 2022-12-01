@@ -13,9 +13,7 @@ import com.mianeko.fuzzyinferencesystemsbackend.exceptions.RuleNotExistException
 import com.mianeko.fuzzyinferencesystemsbackend.exceptions.SystemNotExistException
 import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.ConsequentLookup
 import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.PageSettings
-import com.mianeko.fuzzyinferencesystemsbackend.services.AntecedentService
 import com.mianeko.fuzzyinferencesystemsbackend.services.ConsequentService
-import com.mianeko.fuzzyinferencesystemsbackend.services.RuleService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
@@ -32,9 +30,7 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/systems/{systemId}/rules")
 class ConsequentsApiHandler(
-    private val ruleService: RuleService,
     private val consequentService: ConsequentService,
-    private val antecedentService: AntecedentService,
     @Value("\${server.servlet.application-display-name}") val serverName: String
 ) {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -67,7 +63,7 @@ class ConsequentsApiHandler(
             )
 
             return consequentService
-                .getAll(lookup, PageSettings(page, size))
+                .getAll(lookup, PageSettings(page - 1, size))
                 .map { it.toModelNet() }
         } catch (e: SystemNotExistException) {
             throw SystemNotFoundException()

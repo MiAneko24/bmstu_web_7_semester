@@ -13,7 +13,6 @@ import com.mianeko.fuzzyinferencesystemsbackend.exceptions.VariableNotExistExcep
 import com.mianeko.fuzzyinferencesystemsbackend.exceptions.VariableSaveException
 import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.PageSettings
 import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.VariableLookup
-import com.mianeko.fuzzyinferencesystemsbackend.services.MembershipFunctionService
 import com.mianeko.fuzzyinferencesystemsbackend.services.VariableService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.ArraySchema
@@ -31,7 +30,6 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/systems/{systemId}/variables")
 class VariablesApiHandler(
     private val variableService: VariableService,
-    private val membershipFunctionService: MembershipFunctionService,
     @Value("\${server.servlet.application-display-name}") val serverName: String
 ) {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -61,7 +59,7 @@ class VariablesApiHandler(
                 variableId = null
             )
             return variableService
-                .getAll(lookup, PageSettings(page, size))
+                .getAll(lookup, PageSettings(page - 1, size))
                 .map { it.toPartialModelNet() }
         } catch (e: SystemNotExistException) {
             throw SystemNotFoundException()
@@ -198,42 +196,4 @@ class VariablesApiHandler(
 
         variableService.delete(lookup)
     }
-
-//    @Operation(summary = "Get membership functions by variable ID")
-//    @ApiResponses(value = [
-//        ApiResponse(responseCode = "200", description = "Successful Request",
-//            content = [(Content(
-//                mediaType = "application/json",
-//                array = ArraySchema(schema = Schema(implementation = PartialMembershipFunctionNet::class))
-//            ))]),
-//        ApiResponse(responseCode = "404", description = "Not Found",
-//            content = [(Content(schema = Schema(hidden = true)))]),
-//        ApiResponse(responseCode = "500", description = "Internal Server Error",
-//            content = [(Content(schema = Schema(hidden = true)))])]
-//    )
-//    @GetMapping("/{variableId}/membershipFunctions")
-//    fun getVariableFunctions(
-//        @PathVariable systemId: Int,
-//        @PathVariable variableId: Int,
-//        @RequestParam(value = "page", defaultValue = "0", required = false) page: Int,
-//        @RequestParam(value = "size", defaultValue = Int.MAX_VALUE.toString(), required = false) size: Int
-//    ): List<PartialMembershipFunctionNet> {
-//        log.info("$serverName| Get variable membership functions request")
-//        try {
-//            val lookup = MembershipFunctionLookup(
-//                systemId = systemId,
-//                variableId = variableId,
-//                membershipFunctionId = null
-//            )
-//
-//            return membershipFunctionService
-//                .getAll(lookup, PageSettings(page, size))
-//                .filter { it.variable?.id == variableId }
-//                .map { it.toPartialModelNet() }
-//        } catch (e: SystemNotExistException) {
-//            throw SystemNotFoundException()
-//        } catch (e: VariableNotExistException) {
-//            throw VariableNotFoundException()
-//        }
-//    }
 }

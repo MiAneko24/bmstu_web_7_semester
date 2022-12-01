@@ -17,7 +17,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
-internal class VariableRepositoryImplTest {
+class VariableRepositoryImplTest {
     private val database: Database = mock()
     private val variableRepositoryImpl: VariableRepositoryImpl = VariableRepositoryImpl(database)
     private val queryMock: Query<DBVariable> = mock()

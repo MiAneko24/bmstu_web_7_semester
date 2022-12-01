@@ -13,7 +13,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
-internal class SystemServiceImplTest {
+class SystemServiceImplTest {
     private val systemRepository: SystemRepository = mock()
 
     private val systemServiceImpl: SystemServiceImpl = SystemServiceImpl(systemRepository)

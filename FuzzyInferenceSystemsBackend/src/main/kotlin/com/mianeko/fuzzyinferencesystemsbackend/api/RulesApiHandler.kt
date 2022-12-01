@@ -9,7 +9,6 @@ import com.mianeko.fuzzyinferencesystemsbackend.api.models.RuleTemplateNet
 import com.mianeko.fuzzyinferencesystemsbackend.exceptions.*
 import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.PageSettings
 import com.mianeko.fuzzyinferencesystemsbackend.lookupEntities.RuleLookup
-import com.mianeko.fuzzyinferencesystemsbackend.services.AntecedentService
 import com.mianeko.fuzzyinferencesystemsbackend.services.RuleService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.ArraySchema
@@ -27,7 +26,6 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/systems/{systemId}/rules")
 class RulesApiHandler(
     private val ruleService: RuleService,
-    private val antecedentService: AntecedentService,
     @Value("\${server.servlet.application-display-name}") val serverName: String
 ) {
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -59,7 +57,7 @@ class RulesApiHandler(
             )
 
             return ruleService
-                .getAll(lookup, PageSettings(page, size))
+                .getAll(lookup, PageSettings(page - 1, size))
                 .filter { it.systemId == systemId }
                 .map { it.toPartialModelNet() }
         } catch (e: SystemNotExistException) {
@@ -225,7 +223,7 @@ class RulesApiHandler(
     fun deleteRule(
         @PathVariable systemId: Int,
         @PathVariable ruleId: Int
-    ): Unit {
+    ) {
         log.info("$serverName| Delete rule request")
         val lookup = RuleLookup(
             systemId = systemId,
@@ -234,46 +232,5 @@ class RulesApiHandler(
 
         return ruleService.delete(lookup)
     }
-
-    // RULES ANTECEDENTS API
-
-//    @Operation(summary = "Get antecedents by rule ID")
-//    @ApiResponses(value = [
-//        ApiResponse(responseCode = "200", description = "Successful Request",
-//            content = [(Content(
-//                mediaType = "application/json",
-//                array = ArraySchema(schema = Schema(implementation = AntecedentNet::class))
-//            ))]),
-//        ApiResponse(responseCode = "404", description = "Not Found",
-//            content = [(Content(schema = Schema(hidden = true)))]),
-//        ApiResponse(responseCode = "500", description = "Internal Server Error",
-//            content = [(Content(schema = Schema(hidden = true)))])]
-//    )
-//    @GetMapping("/{ruleId}/antecedents")
-//    fun getAntecedents(
-//        @PathVariable systemId: Int,
-//        @PathVariable ruleId: Int,
-//        @RequestParam(value = "page", defaultValue = "0", required = false) page: Int,
-//        @RequestParam(value = "size", defaultValue = Int.MAX_VALUE.toString(), required = false) size: Int,
-//    ): List<AntecedentNet> {
-//        log.info("$serverName| Get rule antecedents request")
-//        try {
-//            val antecedentLookup = AntecedentLookup(
-//                systemId = systemId,
-//                ruleId = ruleId,
-//                antecedentId = null
-//            )
-//
-//            return antecedentService
-//                .getAll(antecedentLookup, PageSettings(page, size))
-//                .map { it.toModelNet() }
-//        } catch (e: SystemNotExistException) {
-//            throw SystemNotFoundException()
-//        } catch (e: RuleNotExistException) {
-//            throw RuleNotFoundException()
-//        }
-//    }
-
-    // CONSEQUENTS API
 }
 

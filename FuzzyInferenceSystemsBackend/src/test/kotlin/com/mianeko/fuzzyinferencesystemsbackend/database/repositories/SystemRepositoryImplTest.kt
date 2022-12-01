@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.*
 
-internal class SystemRepositoryImplTest {
+class SystemRepositoryImplTest {
     private val database: Database = mock()
     private val systemRepositoryImpl = SystemRepositoryImpl(database)
     private val queryMock: Query<DBSystem> = mock()

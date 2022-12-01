@@ -17,7 +17,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
-internal class RuleRepositoryImplTest {
+class RuleRepositoryImplTest {
     private val database: Database = mock()
     private val ruleRepositoryImpl: RuleRepositoryImpl = RuleRepositoryImpl(database)
     private val queryMock: Query<DBRule> = mock()

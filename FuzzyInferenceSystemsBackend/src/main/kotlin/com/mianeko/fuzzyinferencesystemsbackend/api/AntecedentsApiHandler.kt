@@ -63,7 +63,7 @@ class AntecedentsApiHandler(
 
         try {
             return antecedentService
-                .getAll(antecedentLookup, PageSettings(page, size))
+                .getAll(antecedentLookup, PageSettings(page - 1, size))
                 .map { it.toModelNet() }
         } catch (e: SystemNotExistException) {
             throw SystemNotFoundException()

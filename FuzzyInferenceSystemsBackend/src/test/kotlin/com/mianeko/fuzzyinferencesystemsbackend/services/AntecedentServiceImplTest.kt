@@ -18,7 +18,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
-internal class AntecedentServiceImplTest {
+class AntecedentServiceImplTest {
     private val antecedentRepository: AntecedentRepository = mock()
     private val systemRepository: SystemRepository = mock()
     private val ruleRepository: RuleRepository = mock()

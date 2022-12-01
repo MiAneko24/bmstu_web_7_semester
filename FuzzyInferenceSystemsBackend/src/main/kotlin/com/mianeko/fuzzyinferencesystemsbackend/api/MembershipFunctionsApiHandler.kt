@@ -58,7 +58,7 @@ class MembershipFunctionsApiHandler(
 
             return membershipFunctionService.getAll(
                 lookup,
-                PageSettings(page, size)
+                PageSettings(page - 1, size)
             )
                 .map { it.toPartialModelNet() }
         } catch (e: SystemNotExistException) {

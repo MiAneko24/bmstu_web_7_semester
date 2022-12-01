@@ -15,7 +15,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
-internal class ConsequentServiceImplTest {
+class ConsequentServiceImplTest {
     private val consequentRepository: ConsequentRepository = mock()
     private val systemRepository: SystemRepository = mock()
     private val ruleRepository: RuleRepository = mock()

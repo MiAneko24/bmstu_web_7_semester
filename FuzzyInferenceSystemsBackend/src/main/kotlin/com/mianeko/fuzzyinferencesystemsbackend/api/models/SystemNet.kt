@@ -4,6 +4,7 @@ import com.mianeko.fuzzyinferencesystemsbackend.api.models.enums.FuzzySystemType
 import com.mianeko.fuzzyinferencesystemsbackend.api.models.enums.SpecializationTypeNet
 
 data class SystemNet(
+    val id: Int,
     val name: String,
     val type: FuzzySystemTypeNet,
     val specializationType: SpecializationTypeNet
