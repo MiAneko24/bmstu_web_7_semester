@@ -1,0 +1,47 @@
+
+###
+GET http://localhost:8080/api/systems/4/rules/20/antecedents
+Accept: application/json
+
+###
+GET http://localhost:8080/api/systems/4/rules/20/consequents/21
+Accept: application/json
+
+###
+GET http://localhost:8080/api/systems/4/rules/20/consequents
+Accept: application/json
+
+###
+GET http://localhost:8080/api/systems/1/antecedents/2
+Accept: application/json
+
+###
+GET http://localhost:8080/api/systems/4/rules/20
+Accept: application/json
+
+###
+GET http://localhost:8080/api/systems/1/rules
+Accept: application/json
+
+###
+GET http://localhost:8080/api/systems/844468475/variables/90910366
+Accept: application/json
+
+###
+GET http://localhost:8080/api/systems/844468475/variables
+Accept: application/json
+
+###
+GET http://localhost:8080/api/systems/1/membershipFunctions
+Accept: application/json
+
+###
+
+GET http://localhost:8080/api/systems/705961217/membershipFunctions/960016299
+Accept: application/json
+
+###
+
+PUT http://localhost:9091/api/v1/api/systems/1
+Accept: application/json
+
